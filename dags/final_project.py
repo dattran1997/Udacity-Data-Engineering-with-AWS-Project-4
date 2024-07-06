@@ -89,13 +89,17 @@ def final_project():
         task_id='Load_time_dim_table',
         redshift_conn_id="redshift",
         table='time',
-        sql_query=SqlQueries.time_table_insert
+        sql_query=SqlQueries.time_table_insert,
+        append_mode=False
     )
 
     run_quality_checks = DataQualityOperator(
         task_id='Run_data_quality_checks',
         redshift_conn_id="redshift",
-        tables=["songplays", "users", "songs", "artists", "time"]
+        dq_checks=[
+            {'check_sql': "SELECT COUNT(*) FROM users WHERE userid is null", 'expected_result': 0},
+            {'check_sql': "SELECT COUNT(*) FROM songs WHERE songid is null", 'expected_result': 0},
+        ]
     )
 
     end_operator = DummyOperator(task_id='End_execution')
